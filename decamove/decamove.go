@@ -12,9 +12,15 @@ import (
 type Decamove struct {
 	connection serial.Port
 
-	Battery             int
-	Accuracy enums.Accuracy
-	calibrationCounter  uint8
+	Battery            int
+	Accuracy           enums.Accuracy
+	calibrationCounter uint8
+
+	DecamoveVersion types.FirmwareVersion
+	DecamoveAddress types.BLEAdress
+
+	DongleVersion types.FirmwareVersion
+	DongleAddress types.BLEAdress
 }
 
 func Connect(port string) Decamove {
@@ -40,6 +46,10 @@ func (d Decamove) StartListner(ctx context.Context) {
 		buff := make([]byte, 100)
 		const dataMaxLength = 1024
 		data := make([]byte, 0, dataMaxLength)
+
+		defer func() {
+			d.connection = nil
+		}()
 
 		for {
 			select {
@@ -79,19 +89,23 @@ func (d Decamove) Read(packet []byte) {
 	switch command.GetCommand() {
 	case enums.RotationUpdate:
 		rotation := command.(types.RotationPacket)
-        d.Accuracy =rotation.Accuracy
-        log.Debug(rotation)
+		d.Accuracy = rotation.Accuracy
+		log.Debug(rotation)
 	case enums.CalibrationUpdate:
 		if d.calibrationCounter++; d.calibrationCounter == 100 {
 			d.calibrationCounter = 0
 			d.Accuracy = command.(types.CalibrationPacket).Accuracy
-            log.Info(accMessage(d.Accuracy))
+			log.Info(accMessage(d.Accuracy))
 		}
 	case enums.Feedback:
 		feedback := command.(types.FeedbackPacket)
-        log.Info(feedbackMessage(feedback.Feedback))
+		log.Info(feedbackMessage(feedback.Feedback))
 	case enums.DeviceInfo:
 		deviceInfo := command.(types.DeviceInfoPacket)
+		d.DongleVersion = deviceInfo.DongleVersion
+		d.DongleAddress = deviceInfo.DongleAddress
+		d.DecamoveVersion = deviceInfo.DecaMoveFirmware
+		d.DecamoveAddress = deviceInfo.DecaMoveAddress
 		log.Infof("dongle firmware: %s | dongle address: %s \t deacamove firmware: %s | decamove address: %s",
 			deviceInfo.DongleVersion, deviceInfo.DongleAddress, deviceInfo.DecaMoveFirmware, deviceInfo.DecaMoveAddress)
 	case enums.BatteryUpdate:
@@ -110,4 +124,12 @@ func (d Decamove) Read(packet []byte) {
 			"command": command,
 		}).Info("Unknown command recoived")
 	}
+}
+
+func (d Decamove) DongleState() enums.DongleState {
+	if d.connection == nil {
+		return enums.Closed
+	}
+    // todo
+    return 0
 }
