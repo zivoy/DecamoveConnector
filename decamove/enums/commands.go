@@ -1,30 +1,16 @@
 package enums
 
-type Command byte
+type CommandPreventShutdownEnable byte
 
 const (
-	Haptic                = Command(iota) // 'H'
-	Blink                                 // 'B'
-	Shutdown                              // 'X'
-	RequestHardwareStatus                 // 'T'
-	DFUMode                               // 'D'
-	PreventShutdown                       // 'Q'
-	StartCalibration                      // 'C'
-	AbortCalibration                      // 'A'
-	SaveCalibration                       // 'S
-)
-
-type CommandPreventShutdownFirstArgument byte
-
-const (
-	On    = CommandPreventShutdownFirstArgument(iota) // "on"
+    On    = CommandPreventShutdownEnable(iota) // "on"
 	Off                                               // "off"
 	NoUSB                                             // "usb-not-connected"
 )
 
-type CommandPreventShutdownSecondArgument byte
+type CommandPreventShutdownTime byte
 
 const (
-	Pernament = CommandPreventShutdownSecondArgument(iota) // "perm"
+    Pernament = CommandPreventShutdownTime(iota) // "perm"
 	Temporary                                              // "temp"
 )
