@@ -27,7 +27,7 @@ const (
 	ShuttingDown
 	SingleCLickResponse
 	DoubleClickResponse
-	TrupleClickResponse
+	TripleClickResponse
 	USBConnection
 	USBDisconnection
 )

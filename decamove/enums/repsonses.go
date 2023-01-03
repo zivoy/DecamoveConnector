@@ -6,8 +6,8 @@ const (
 	UnknownResponse        = Message(iota)
 	RotationUpdate // xx
     CalibrationUpdate // mm
-    Feedback
-    BatteryUpdate
-    DeviceInfo
-    HardwareReponse
+    Feedback // ff
+    BatteryUpdate // bb
+    DeviceInfo // vv
+    HardwareReponse // tt
 )

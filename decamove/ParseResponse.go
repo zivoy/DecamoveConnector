@@ -3,35 +3,36 @@ package decamove
 import (
 	"encoding/binary"
 	"github.com/zivoy/decamoveConnector/decamove/enums"
+	"github.com/zivoy/decamoveConnector/decamove/types"
 	"gonum.org/v1/gonum/num/quat"
 	"math"
 )
 
-func parse(message []byte) MessagePacket {
+func parse(message []byte) types.MessagePacket {
 	command := string(message[:2])
 	packet := message[2:]
 	packetLength := len(packet) // the length checks are porbably unneeded but im leaving them anyways
 	if packetLength >= 8 && command == "xx" {
 		num, acc := parseRotationUpdate(packet)
-		return RotationPacket{enums.RotationUpdate, num, acc}
+		return types.RotationPacket{Message: enums.RotationUpdate, Quaternion: num, Accuracy: acc}
 	} else if packetLength == 8 && command == "mm" {
-		return CalibrationPacket{enums.CalibrationUpdate, packet[6]}
+        return types.CalibrationPacket{Message: enums.CalibrationUpdate, Accuracy: enums.Accuracy(packet[6])}
 	} else if packetLength == 1 && command == "ff" {
-		return FeedbackPacket{enums.Feedback, enums.DecamoveState(packet[0])}
+		return types.FeedbackPacket{Message: enums.Feedback, Feedback: enums.DecamoveState(packet[0])}
 	} else if packetLength == 2 && command == "bb" {
-		return BatteryPacket{enums.BatteryUpdate, parseBatteryLevel(packet)}
+		return types.BatteryPacket{Message: enums.BatteryUpdate, BatteryLevel: parseBatteryLevel(packet)}
 	} else if packetLength == 24 && command == "vv" {
-		return DeviceInfoPacket{enums.DeviceInfo,
-			parseFirmware(packet[:5]),
-			parseFirmware(packet[5:10]),
-			parseBleAdress(packet[10:17]),
-			parseBleAdress(packet[17:]),
+		return types.DeviceInfoPacket{Message: enums.DeviceInfo,
+			DongleVersion:    parseFirmware(packet[:5]),
+			DecaMoveFirmware: parseFirmware(packet[5:10]),
+			DongleAddress:    parseBleAdress(packet[10:17]),
+			DecaMoveAddress:  parseBleAdress(packet[17:]),
 		}
 	} else if packetLength >= 6 && command == "tt" {
 		return generateHardwareSurveryResponse(packet)
 	}
 
-	return UnknownPacket{Message: enums.UnknownResponse, Packet: message}
+	return types.UnknownPacket{Message: enums.UnknownResponse, Packet: message}
 }
 
 const quatMagicConstant float32 = 6.103515625e-05
@@ -61,8 +62,8 @@ func parseBatteryLevel(message []byte) int32 {
 	return int32(math.Ceil(num / 10))
 }
 
-func parseBleAdress(message []byte) BLEAdress {
-	address := BLEAdress{}
+func parseBleAdress(message []byte) types.BLEAdress {
+	address := types.BLEAdress{}
 	address.IdPeer = message[0]&0b111 == 0b111
 	address.Type = uint8(message[0]) & math.MaxInt8
 
@@ -75,14 +76,14 @@ func parseBleAdress(message []byte) BLEAdress {
 	return address
 }
 
-func parseFirmware(message []byte) FirmwareVersion {
+func parseFirmware(message []byte) types.FirmwareVersion {
 	valid := message[0] != 0
-	return FirmwareVersion{valid, message[1], message[2], message[3], message[4]}
+	return types.FirmwareVersion{Valid: valid, Major: message[1], Minor: message[2], Patch: message[3], PreRelease: message[4]}
 }
 
-func generateHardwareSurveryResponse(message []byte) HardWareSurveyPacket {
-	serveyData := HardWareSurveyPacket{RawData: message}
-    
+func generateHardwareSurveryResponse(message []byte) types.HardWareSurveyPacket {
+	serveyData := types.HardWareSurveyPacket{Message: enums.HardwareReponse, RawData: message}
+
 	data := message[0]
 	serveyData.IsSleeping = /*        */ data&(1<<0) == (1 << 0)
 	serveyData.UsbConnected = /*      */ data&(1<<1) == (1 << 1)
@@ -94,7 +95,7 @@ func generateHardwareSurveryResponse(message []byte) HardWareSurveyPacket {
 	serveyData.HapticsFailiure = /*   */ data&(1<<7) == (1 << 7)
 
 	data = message[1]
-    serveyData.HapticsInitFaliure = /**/ data&(1<<0) == (1 << 0)
+	serveyData.HapticsInitFaliure = /**/ data&(1<<0) == (1 << 0)
 
 	return serveyData
 }
