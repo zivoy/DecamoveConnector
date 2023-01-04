@@ -30,15 +30,6 @@ func main() {
 		fmt.Printf("Found port: %v\n", port)
 	}
 
-	// Send the string "10,20,30\n\r" to the serial port
-	//        n, err := port.Write([]byte("10,20,30\n\r"))
-	//        if err != nil {
-	//            log.Fatal(err)
-	//        }
-	//        fmt.Printf("Sent %v bytes\n", n)
-
-	// Read and print the response
-
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	signalChan := make(chan os.Signal, 1)

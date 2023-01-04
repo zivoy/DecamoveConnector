@@ -25,65 +25,29 @@ type Decamove struct {
 
 func Connect(port string) Decamove {
 	dm := Decamove{}
-	mode := &serial.Mode{
-		BaudRate: 256000,
-		Parity:   serial.NoParity,
-		DataBits: 8,
-		StopBits: serial.OneStopBit,
-	}
-	conn, err := serial.Open(port, mode)
-
+	conn, err := serial.Open(port, getSerialSettings())
 	if err != nil {
 		log.Error(err)
 		return dm
 	}
+	err = conn.SetDTR(true)
+	if err != nil {
+		log.Error(err)
+		return dm
+	}
+
 	dm.connection = conn
 	return dm
 }
 
 func (d Decamove) StartListner(ctx context.Context) {
-	go func() {
-		buff := make([]byte, 100)
-		const dataMaxLength = 1024
-		data := make([]byte, 0, dataMaxLength)
-
-		defer func() {
-			d.connection = nil
-		}()
-
-		for {
-			select {
-			case <-ctx.Done():
-				log.Info("stop signal recived")
-				return
-			default:
-				n, err := d.connection.Read(buff)
-				if err != nil {
-					log.Fatal(err)
-				}
-				if n == 0 {
-					log.Debug("EOF reached, listener stopping")
-					break
-				}
-
-				data = append(data, buff[:n]...)
-
-				if strings.Contains(string(data), "\n") {
-					data = []byte(strings.TrimSuffix(string(data), "\r\n"))
-					d.Read(data)
-					data = make([]byte, 0, dataMaxLength)
-				} else if len(data) >= dataMaxLength {
-					log.Error("Exceeded buffer length, reseting data")
-					data = make([]byte, 0, dataMaxLength)
-				}
-			}
-		}
-	}()
+	go startListner(ctx, d)
 }
 
-//const responseSuffix = "\r\n"
+const responseSuffix = "\r\n"
 
 func (d Decamove) Read(packet []byte) {
+	packet = []byte(strings.TrimRight(string(packet), responseSuffix))
 	command := parse(packet)
 
 	switch command.GetCommand() {
