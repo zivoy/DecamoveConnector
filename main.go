@@ -6,10 +6,10 @@ import (
 	"github.com/zivoy/decamoveConnector/decamove"
 	"os"
 	"os/signal"
-    "syscall"
-    "time"
+	"syscall"
+	"time"
 
-    log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	//	"go.bug.st/serial/enumerator"
 	"go.bug.st/serial"
 )
@@ -42,14 +42,14 @@ func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	signalChan := make(chan os.Signal, 1)
-    signal.Notify(signalChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	dm := decamove.Connect(ports[0])
 	dm.StartListner(ctx)
 
-    <-signalChan
-    cancel()
-    time.Sleep(500*time.Millisecond)
+	<-signalChan
+	cancel()
+	time.Sleep(500 * time.Millisecond)
 }
 
 //func scan() {

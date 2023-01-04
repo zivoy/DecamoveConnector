@@ -1,14 +1,5 @@
 package enums
 
-type HapticEffect byte
-
-const (
-	SingleClickHaptic HapticEffect = 0x1
-	DoubleClickHaptic HapticEffect = 0xA
-	Buzz              HapticEffect = 0xE
-	Calibration       HapticEffect = 0x18
-)
-
 type Accuracy byte
 
 const (

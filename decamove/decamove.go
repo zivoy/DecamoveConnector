@@ -130,6 +130,6 @@ func (d Decamove) DongleState() enums.DongleState {
 	if d.connection == nil {
 		return enums.Closed
 	}
-    // todo
-    return 0
+	// todo
+	return 0
 }

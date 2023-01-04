@@ -16,7 +16,7 @@ func parse(message []byte) types.MessagePacket {
 		num, acc := parseRotationUpdate(packet)
 		return types.RotationPacket{Message: enums.RotationUpdate, Quaternion: num, Accuracy: acc}
 	} else if packetLength == 8 && command == "mm" {
-        return types.CalibrationPacket{Message: enums.CalibrationUpdate, Accuracy: enums.Accuracy(packet[6])}
+		return types.CalibrationPacket{Message: enums.CalibrationUpdate, Accuracy: enums.Accuracy(packet[6])}
 	} else if packetLength == 1 && command == "ff" {
 		return types.FeedbackPacket{Message: enums.Feedback, Feedback: enums.DecamoveState(packet[0])}
 	} else if packetLength == 2 && command == "bb" {
