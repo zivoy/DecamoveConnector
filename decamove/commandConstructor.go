@@ -28,13 +28,22 @@ func shutdown() string{
  return "X"
 }
 
+/* duration in seconds and frequcny in hz */
 func blink(duration time.Duration, frequency int) string{
+    if frequency < 1{
+        frequency =1
+    } else if frequency > 20{
+        frequency =20
+    }
     return fmt.Sprintf("B %d %d", int(math.Round(duration.Seconds())), frequency)
 }
 
 func haptic(effect enums.HapticEffect, clearQueue bool, repetitions int) string{
     if repetitions < 1{
         return stopHaptic()
+    }
+    if repetitions > 100{
+        repetitions = 100
     }
     cmd := "H"
     if clearQueue{
